@@ -1,2 +1,2 @@
-# depyro
-A wrapper for Degiro.
+# depyro :money_with_wings:
+A wrapper for Degiro to enable people to do portfolio analysis.
