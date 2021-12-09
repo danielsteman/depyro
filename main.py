@@ -25,14 +25,6 @@ class Depyro:
         client.headers.update({"Content-Type": "application/json"})
         return client
 
-    def request(self, url, payload=None):
-        if payload:
-            r = self.client.post(url, data=json.dumps(payload))
-        else:
-            r = self.client.get(url)
-        response = r.json()
-        return response
-
     def login(self):
         url = f'{constant.BASE}/{constant.LOGIN}/{constant.MFA}'
         payload = {
@@ -42,30 +34,35 @@ class Depyro:
             'isRedirectToMobile': False,
             'oneTimePassword': getpass('Enter authenticator token... '),
         }
-        response = self.request(url, payload)
+        response = self.client.post(url, data=json.dumps(payload))
 
         logger.debug(f'Login response: {json.dumps(response)}')
 
         if response.get('status_code') == 200:
             self.session_id = response['sessionId']
-        return response
 
+            logger.debug('Login succeeded')
+
+        return response
 
     def get_account_data(self):
         url = f'{constant.BASE}/{constant.ACCOUNT}'
-        payload = {
+        params = {
             'sessionId': self.session_id,
         }
-        response = self.request(url, payload)
-        data = response['data']
-        self.user['account_ref'] = data['intAccount']
-        self.user['name'] = data['displayName']
-        self.user['country'] = data['nationality']
-        return data
+        r = self.client.get(url, params=params)
+        response = r.json()
+        print(response)
+        # data = response['data']
+        # self.user['account_ref'] = data['intAccount']
+        # self.user['name'] = data['displayName']
+        # self.user['country'] = data['nationality']
+        # return data
 
     def get_portfolio(self):
         url = f'{constant.BASE}/{constant.DATA}/{self.user["account_ref"]};jsessionid={self.session_id}'
-
+        response = self.request(url)
+        return response
 
 client = Depyro()
 client.login()
