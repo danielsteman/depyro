@@ -7,13 +7,11 @@ MFA = "totp"
 
 #account
 TRADER = "trader/secure/profile"
+ACCOUNT = "pa/secure/client"
+PF_DATA = "trading/secure/v5/update/"
 
-ACCOUNT = '/pa/secure/client'
-
-DATA = "trading/secure/v5/update/"
-
-def PORTFOLIO(account_ref, session_id):
-    return f"trading/secure/v5/update/{account_ref};jsessionid={session_id}?portfolio=0"
+# product
+PRODUCT_INFO = "https://trader.degiro.nl/product_search/secure/v5/products/info"
 
 HEADERS = {
     "access-control-allow-credentials": "true",

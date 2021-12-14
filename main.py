@@ -25,21 +25,24 @@ class Depyro:
         client.headers.update({"Content-Type": "application/json"})
         return client
 
-    def login(self):
+    def login(self, auth_type='basic'):
         url = f'{constant.BASE}/{constant.LOGIN}/{constant.MFA}'
         payload = {
             'username': os.environ['username'], 
             'password': os.environ['password'],
             'isPassCodeReset': False,
             'isRedirectToMobile': False,
-            'oneTimePassword': getpass('Enter authenticator token... '),
         }
+        if auth_type == "2fa":
+            payload['oneTimePassword'] = getpass('Enter authenticator token... ')
+        
         response = self.client.post(url, data=json.dumps(payload))
 
-        logger.debug(f'Login response: {json.dumps(response)}')
+        logger.debug(f'Login response: {response}')
 
-        if response.get('status_code') == 200:
-            self.session_id = response['sessionId']
+        if response.status_code == 200:
+            r = response.json()
+            self.session_id = r['sessionId']
 
             logger.debug('Login succeeded')
 
@@ -52,18 +55,30 @@ class Depyro:
         }
         r = self.client.get(url, params=params)
         response = r.json()
-        print(response)
-        # data = response['data']
-        # self.user['account_ref'] = data['intAccount']
-        # self.user['name'] = data['displayName']
-        # self.user['country'] = data['nationality']
-        # return data
+        data = response['data']
+
+        logger.debug(f'Data: {data}')
+
+        self.user['account_ref'] = data['intAccount']
+        self.user['name'] = data['displayName']
+
+        return data
 
     def get_portfolio(self):
-        url = f'{constant.BASE}/{constant.DATA}/{self.user["account_ref"]};jsessionid={self.session_id}'
-        response = self.request(url)
+        url = f'{constant.BASE}/{constant.PF_DATA}/{self.user["account_ref"]};jsessionid={self.session_id}?portfolio=0'
+        response = self.client.get(url)
+        r = response.json()
+        return r
+
+    def get_product_info(self, product_id):
+        url = f'{constant.PRODUCT_INFO}'
+        data = json.dumps([str(product_id)])
+        response = self.client.get(url, json=data)
         return response
 
-client = Depyro()
-client.login()
-client.get_account_data()
+x = Depyro()
+x.login(auth_type='2fa')
+data = x.get_account_data()
+portfolio = x.get_portfolio()
+# product = x.get_product_info(13996899)
+# print(product)
