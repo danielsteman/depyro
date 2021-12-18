@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import constant
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
 
@@ -68,17 +68,55 @@ class Depyro:
         url = f'{constant.BASE}/{constant.PF_DATA}/{self.user["account_ref"]};jsessionid={self.session_id}?portfolio=0'
         response = self.client.get(url)
         r = response.json()
-        return r
+
+        keys = [
+            'positionType',
+            'size',
+            'price',
+            'value',
+            'plBase',
+            'breakEvenPrice',
+        ]
+
+        products = []
+        for product in r['portfolio']['value']:
+            product_dict = {product['id']: {}}
+            for metric in product['value']:
+                if metric['name'] in keys:
+                    product_dict[product['id']][metric['name']] = metric['value']
+            products.append(product_dict)
+        return products
 
     def get_product_info(self, product_id):
-        url = f'{constant.PRODUCT_INFO}'
-        data = json.dumps([str(product_id)])
-        response = self.client.get(url, json=data)
-        return response
+        url = f'{constant.BASE}/{constant.PRODUCT_INFO}'
+        params = {
+            'intAccount': self.user['account_ref'],
+            'sessionId': self.session_id
+        }
+        response = self.client.post(
+            url, 
+            params=params, 
+            data=json.dumps([str(product_id)])
+        )
+        r = response.json()
+        data = r['data'][next(iter(r['data']))]  # skip a level in the dict
+        
+        keys = [
+            'id',
+            'name',
+            'isin',
+            'symbol',
+            'productType',
+            'currency',
+            'closePrice',
+        ]
+
+        product = {k: v for k, v in data.items() if k in keys}
+        return product
 
 x = Depyro()
 x.login(auth_type='2fa')
 data = x.get_account_data()
 portfolio = x.get_portfolio()
-# product = x.get_product_info(13996899)
-# print(product)
+product = x.get_product_info(10280893)
+print(product)

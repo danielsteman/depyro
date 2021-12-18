@@ -143,3 +143,5 @@ cython_debug/
 
 # Custom
 example_responses
+
+.DS_Store

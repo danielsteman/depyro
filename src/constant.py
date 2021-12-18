@@ -11,7 +11,7 @@ ACCOUNT = "pa/secure/client"
 PF_DATA = "trading/secure/v5/update/"
 
 # product
-PRODUCT_INFO = "https://trader.degiro.nl/product_search/secure/v5/products/info"
+PRODUCT_INFO = "product_search/secure/v5/products/info"
 
 HEADERS = {
     "access-control-allow-credentials": "true",
