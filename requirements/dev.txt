@@ -3,3 +3,4 @@ pycodestyle==2.8.0
 pyflakes==2.4.0
 flake8==4.0.1
 black==21.12b0
+pre-commit==2.16.0
