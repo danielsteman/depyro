@@ -48,7 +48,7 @@ class Depyro:
 
         return response
 
-    def get_account_data(self):
+    def get_account_info(self):
         url = f'{constant.BASE}/{constant.ACCOUNT}'
         params = {
             'sessionId': self.session_id,
@@ -64,7 +64,7 @@ class Depyro:
 
         return data
 
-    def get_portfolio(self):
+    def get_portfolio_info(self):
         url = f'{constant.BASE}/{constant.PF_DATA}/{self.user["account_ref"]};jsessionid={self.session_id}?portfolio=0'
         response = self.client.get(url)
         r = response.json()
@@ -80,11 +80,15 @@ class Depyro:
 
         products = []
         for product in r['portfolio']['value']:
-            product_dict = {product['id']: {}}
+            product_dict = {'id': product['id']}
             for metric in product['value']:
                 if metric['name'] in keys:
-                    product_dict[product['id']][metric['name']] = metric['value']
-            products.append(product_dict)
+                    if isinstance(metric['value'], dict):
+                        product_dict[metric['name']] = next(iter(metric['value'].values()))
+                    else:
+                        product_dict[metric['name']] = metric['value']
+            product_name = self.get_product_info(product['id'])
+            products.append({**product_dict, **product_name})
         return products
 
     def get_product_info(self, product_id):
@@ -102,13 +106,10 @@ class Depyro:
         data = r['data'][next(iter(r['data']))]  # skip a level in the dict
         
         keys = [
-            'id',
             'name',
             'isin',
             'symbol',
             'productType',
-            'currency',
-            'closePrice',
         ]
 
         product = {k: v for k, v in data.items() if k in keys}
@@ -116,7 +117,7 @@ class Depyro:
 
 x = Depyro()
 x.login(auth_type='2fa')
-data = x.get_account_data()
-portfolio = x.get_portfolio()
+data = x.get_account_info()
+portfolio = x.get_portfolio_info()
 product = x.get_product_info(10280893)
-print(product)
+print(portfolio)
