@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import constant
 import logging
 
-logging.basicConfig(level=logging.WARN)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
@@ -26,7 +26,6 @@ class Depyro:
         return client
 
     def login(self, auth_type="basic"):
-        url = f"{constant.BASE}/{constant.LOGIN}/{constant.MFA}"
         payload = {
             "username": os.environ["username"],
             "password": os.environ["password"],
@@ -34,7 +33,10 @@ class Depyro:
             "isRedirectToMobile": False,
         }
         if auth_type == "2fa":
+            url = f"{constant.BASE}/{constant.LOGIN}/{constant.MFA}"
             payload["oneTimePassword"] = getpass("Enter authenticator token... ")
+        else:
+            url = f"{constant.BASE}/{constant.LOGIN}"
 
         response = self.client.post(url, data=json.dumps(payload))
 
@@ -102,7 +104,7 @@ class Depyro:
 
 x = Depyro()
 x.login()
-data = x.get_account_info()
-portfolio = x.get_portfolio_info()
-product = x.get_product_info(10280893)
-print(portfolio)
+# data = x.get_account_info()
+# portfolio = x.get_portfolio_info()
+# product = x.get_product_info(10280893)
+# print(portfolio)
