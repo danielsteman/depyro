@@ -5,7 +5,7 @@ BASE = "https://trader.degiro.nl"
 LOGIN = "login/secure/login"
 MFA = "totp"
 
-#account
+# account
 TRADER = "trader/secure/profile"
 ACCOUNT = "pa/secure/client"
 PF_DATA = "trading/secure/v5/update/"
