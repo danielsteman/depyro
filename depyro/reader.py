@@ -1,12 +1,13 @@
+from typing import Type
 import requests
 import json
 import os
 from getpass import getpass
 from dotenv import load_dotenv
-import constant
+from constant import *
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(format=LOGGING_FORMAT, level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -18,12 +19,31 @@ class Depyro:
         self.user = dict()
 
     def __repr__(self):
-        return "Depyro()"
+        return __class__.__name__
 
     def init_client():
         client = requests.Session()
         client.headers.update({"Content-Type": "application/json"})
         return client
+
+    def request(self, url, method, *, data={}, params={}):
+        if method == "get":
+            r = self.client.get(url, data=json.dumps(data), params=params)
+        elif method == "post":
+            r = self.client.post(url, data=json.dumps(data), params=params)
+
+        if r.status_code == 200:
+            try:
+                return r.json()
+            except AttributeError:
+                return "No data"
+        elif r.status_code == 401:
+            logger.warning("Request not authorized, refreshing session token.")
+            self.login()  # to remedy expired session
+            return self.request(url, method, data=data, params=params)  # recurse
+        else:
+            logger.error("Could not process request")
+            return "Could not process request"
 
     def login(self, auth_type="basic"):
         payload = {
@@ -33,40 +53,35 @@ class Depyro:
             "isRedirectToMobile": False,
         }
         if auth_type == "2fa":
-            url = f"{constant.BASE}/{constant.LOGIN}/{constant.MFA}"
+            url = f"{BASE}/{LOGIN}/{MFA}"
             payload["oneTimePassword"] = getpass("Enter authenticator token... ")
         else:
-            url = f"{constant.BASE}/{constant.LOGIN}"
+            url = f"{BASE}/{LOGIN}"
 
-        response = self.client.post(url, data=json.dumps(payload))
+        response = self.request(url, "post", data=payload)
 
-        logger.debug(f"Login response: {response}")
-
-        if response.status_code == 200:
-            r = response.json()
-            self.session_id = r["sessionId"]
-
-            logger.debug("Login succeeded")
+        try:
+            self.session_id = response["sessionId"]
+            logger.info("Login succeeded")
+        except:
+            logger.error("Login failed")
 
         return response
 
     def get_account_info(self):
-        url = f"{constant.BASE}/{constant.ACCOUNT}"
+        url = f"{BASE}/{ACCOUNT}"
         params = {"sessionId": self.session_id}
-        r = self.client.get(url, params=params)
-        response = r.json()
-        data = response["data"]
+        response = self.request(url, "get", params=params)
 
-        logger.debug(f"Data: {data}")
-
-        self.user["account_ref"] = data["intAccount"]
-        self.user["name"] = data["displayName"]
-
-        return data
+        try:
+            data = response["data"]
+            self.user["account_ref"] = data["intAccount"]
+            self.user["name"] = data["displayName"]
+        except TypeError:
+            logger.error("Could not fetch account data")
 
     def get_portfolio_info(self):
-        url = f'{constant.BASE}/{constant.PF_DATA}/{self.user["account_ref"]}\
-            ;jsessionid={self.session_id}?portfolio=0'
+        url = f'{BASE}/{PF_DATA}/{self.user["account_ref"]};jsessionid={self.session_id}?portfolio=0'
         response = self.client.get(url)
         r = response.json()
 
@@ -85,26 +100,26 @@ class Depyro:
                         product_dict[metric["name"]] = metric["value"]
             product_name = self.get_product_info(product["id"])
             products.append({**product_dict, **product_name})
+
         return products
 
     def get_product_info(self, product_id):
-        url = f"{constant.BASE}/{constant.PRODUCT_INFO}"
+        url = f"{BASE}/{PRODUCT_INFO}"
         params = {"intAccount": self.user["account_ref"], "sessionId": self.session_id}
         response = self.client.post(
             url, params=params, data=json.dumps([str(product_id)])
         )
         r = response.json()
         data = r["data"][next(iter(r["data"]))]  # skip a level in the dict
-
         keys = ["name", "isin", "symbol", "productType"]
-
         product = {k: v for k, v in data.items() if k in keys}
+
         return product
 
 
 x = Depyro()
 x.login()
-# data = x.get_account_info()
-# portfolio = x.get_portfolio_info()
-# product = x.get_product_info(10280893)
-# print(portfolio)
+data = x.get_account_info()
+portfolio = x.get_portfolio_info()
+product = x.get_product_info(10280893)
+print(portfolio)

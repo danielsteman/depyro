@@ -1,3 +1,6 @@
+# logging
+LOGGING_FORMAT = "%(asctime)s %(levelname)s: %(message)s"
+
 # base
 BASE = "https://trader.degiro.nl"
 
