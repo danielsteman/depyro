@@ -1,13 +1,12 @@
-from typing import Type
 import requests
 import json
 import os
+import logging
 from getpass import getpass
 from dotenv import load_dotenv
-from constant import *
-import logging
+import constants as c
 
-logging.basicConfig(format=LOGGING_FORMAT, level=logging.INFO)
+logging.basicConfig(format=c.LOGGING_FORMAT, level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -26,7 +25,7 @@ class Depyro:
         client.headers.update({"Content-Type": "application/json"})
         return client
 
-    def request(self, url, method, *, data={}, params={}):
+    def request(self, url, method, *, data={}, params={}, recurse=True):
         if method == "get":
             r = self.client.get(url, data=json.dumps(data), params=params)
         elif method == "post":
@@ -39,8 +38,11 @@ class Depyro:
                 return "No data"
         elif r.status_code == 401:
             logger.warning("Request not authorized, refreshing session token.")
-            self.login()  # to remedy expired session
-            return self.request(url, method, data=data, params=params)  # recurse
+            if recurse:
+                self.login()  # refresh session token
+                return self.request(
+                    url, method, data=data, params=params, resurce=False
+                )  # recurse once
         else:
             logger.error("Could not process request")
             return "Could not process request"
@@ -53,23 +55,23 @@ class Depyro:
             "isRedirectToMobile": False,
         }
         if auth_type == "2fa":
-            url = f"{BASE}/{LOGIN}/{MFA}"
+            url = f"{c.BASE}/{c.LOGIN}/{c.MFA}"
             payload["oneTimePassword"] = getpass("Enter authenticator token... ")
         else:
-            url = f"{BASE}/{LOGIN}"
+            url = f"{c.BASE}/{c.LOGIN}"
 
         response = self.request(url, "post", data=payload)
 
         try:
             self.session_id = response["sessionId"]
             logger.info("Login succeeded")
-        except:
+        except TypeError:
             logger.error("Login failed")
 
         return response
 
     def get_account_info(self):
-        url = f"{BASE}/{ACCOUNT}"
+        url = f"{c.BASE}/{c.ACCOUNT}"
         params = {"sessionId": self.session_id}
         response = self.request(url, "get", params=params)
 
@@ -81,7 +83,8 @@ class Depyro:
             logger.error("Could not fetch account data")
 
     def get_portfolio_info(self):
-        url = f'{BASE}/{PF_DATA}/{self.user["account_ref"]};jsessionid={self.session_id}?portfolio=0'
+        url = f'{c.BASE}/{c.PF_DATA}/{self.user["account_ref"]}\
+            ;jsessionid={self.session_id}?portfolio=0'
         response = self.client.get(url)
         r = response.json()
 
@@ -104,7 +107,7 @@ class Depyro:
         return products
 
     def get_product_info(self, product_id):
-        url = f"{BASE}/{PRODUCT_INFO}"
+        url = f"{c.BASE}/{c.PRODUCT_INFO}"
         params = {"intAccount": self.user["account_ref"], "sessionId": self.session_id}
         response = self.client.post(
             url, params=params, data=json.dumps([str(product_id)])
