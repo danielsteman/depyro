@@ -36,12 +36,12 @@ class Depyro:
                 return r.json()
             except AttributeError:
                 return "No data"
-        elif r.status_code == 401:
+        elif r.status_code in [400, 401]:
             logger.warning("Request not authorized, refreshing session token.")
             if recurse:
                 self.login()  # refresh session token
                 return self.request(
-                    url, method, data=data, params=params, resurce=False
+                    url, method, data=data, params=params, recurse=False
                 )  # recurse once
         else:
             logger.error("Could not process request")
@@ -74,24 +74,28 @@ class Depyro:
         url = f"{c.BASE}/{c.ACCOUNT}"
         params = {"sessionId": self.session_id}
         response = self.request(url, "get", params=params)
-
         try:
             data = response["data"]
             self.user["account_ref"] = data["intAccount"]
             self.user["name"] = data["displayName"]
+            logger.info("Fetched account info")
         except TypeError:
             logger.error("Could not fetch account data")
 
     def get_portfolio_info(self):
+        if not self.session_id:  # if not logged in: login
+            self.login()
+        if not self.user:  # if not account info: get account info
+            self.get_account_info()
+
         url = f'{c.BASE}/{c.PF_DATA}/{self.user["account_ref"]}\
             ;jsessionid={self.session_id}?portfolio=0'
-        response = self.client.get(url)
-        r = response.json()
+        response = self.request(url, "get")
 
         keys = ["positionType", "size", "price", "value", "plBase", "breakEvenPrice"]
 
         products = []
-        for product in r["portfolio"]["value"]:
+        for product in response["portfolio"]["value"]:
             product_dict = {"id": product["id"]}
             for metric in product["value"]:
                 if metric["name"] in keys:
@@ -107,22 +111,26 @@ class Depyro:
         return products
 
     def get_product_info(self, product_id):
+        if not self.session_id:
+            self.login()
+        if not self.user:
+            self.get_account_info()
+
         url = f"{c.BASE}/{c.PRODUCT_INFO}"
+
         params = {"intAccount": self.user["account_ref"], "sessionId": self.session_id}
-        response = self.client.post(
-            url, params=params, data=json.dumps([str(product_id)])
-        )
-        r = response.json()
-        data = r["data"][next(iter(r["data"]))]  # skip a level in the dict
-        keys = ["name", "isin", "symbol", "productType"]
+
+        response = self.request(url, "post", params=params, data=[str(product_id)])
+
+        data = response["data"][
+            next(iter(response["data"]))
+        ]  # skip a level in the dict
+        keys = ["name", "isin", "symbol", "productType"]  # keys to extract
         product = {k: v for k, v in data.items() if k in keys}
 
         return product
 
 
-x = Depyro()
-x.login()
-data = x.get_account_info()
-portfolio = x.get_portfolio_info()
-product = x.get_product_info(10280893)
-print(portfolio)
+client = Depyro()
+result = client.get_portfolio_info()
+print(result)

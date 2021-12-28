@@ -16,6 +16,7 @@ PF_DATA = "trading/secure/v5/update/"
 # product
 PRODUCT_INFO = "product_search/secure/v5/products/info"
 
+# requests client
 HEADERS = {
     "access-control-allow-credentials": "true",
     "cache-control": "no-cache, no-store, must-revalidate",

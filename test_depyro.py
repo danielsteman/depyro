@@ -1,4 +1,4 @@
-from ..depyro.reader import Depyro
+from depyro.reader import Depyro
 
 client = Depyro()
 
