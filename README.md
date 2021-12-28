@@ -8,11 +8,8 @@ A wrapper for De Giro to enable people to do portfolio analysis.
 ```
 from depyro.core import Depyro
 client = Depyro(auth_type="2fa")
-
 >>> Enter authenticator token...
-
 result = client.get_portfolio_info()
-
 >>>
 [
   {
