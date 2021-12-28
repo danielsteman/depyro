@@ -16,6 +16,7 @@ class Depyro:
         self.client = Depyro.init_client()
         self.session_id = ""
         self.user = dict()
+        self.auth_type = "basic"
 
     def __repr__(self):
         return __class__.__name__
@@ -54,7 +55,7 @@ class Depyro:
             "isPassCodeReset": False,
             "isRedirectToMobile": False,
         }
-        if auth_type == "2fa":
+        if auth_type == "2fa" or self.auth_type == "2fa":
             url = f"{c.BASE}/{c.LOGIN}/{c.MFA}"
             payload["oneTimePassword"] = getpass("Enter authenticator token... ")
         else:

@@ -3,11 +3,12 @@ A wrapper for De Giro to enable people to do portfolio analysis.
 
 ### Get started
 1. Set `username` and `password` as environment variables or in an `.env` file in the root of your project.
-2. Instantiate the client and fetch portfolio information
+2. Instantiate the client and fetch portfolio information.
 
 ```
 from depyro.core import Depyro
-client = Depyro()
+client = Depyro(auth_type="2fa")
+>>> Enter authenticator token...
 result = client.get_portfolio_info()
 >>>
 [
