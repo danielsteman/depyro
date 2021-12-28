@@ -129,8 +129,3 @@ class Depyro:
         product = {k: v for k, v in data.items() if k in keys}
 
         return product
-
-
-client = Depyro()
-result = client.get_portfolio_info()
-print(result)
