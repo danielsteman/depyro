@@ -118,11 +118,8 @@ class Depyro:
             self.get_account_info()
 
         url = f"{c.BASE}/{c.PRODUCT_INFO}"
-
         params = {"intAccount": self.user["account_ref"], "sessionId": self.session_id}
-
         response = self.request(url, "post", params=params, data=[str(product_id)])
-
         data = response["data"][
             next(iter(response["data"]))
         ]  # skip a level in the dict

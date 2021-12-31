@@ -1,3 +1,3 @@
-from .reader import Depyro
+from .core import Depyro
 
 __all__ = ["Depyro"]
