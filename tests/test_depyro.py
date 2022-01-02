@@ -1,5 +1,3 @@
-from depyro.core import Depyro
+import sys
 
-client = Depyro()
-
-print(repr(client))
+sys.path.append("../src")

@@ -1,5 +1,5 @@
 # depyro :money_with_wings:
-A wrapper for De Giro to enable people to do portfolio analysis.
+A wrapper for De Giro API, specifically for portfolio analysis. If you have ETFs in your portfolio, use in conjunction with `pyholdings` to discover ETF compositions.
 
 ### Get started
 1. Set `username` and `password` as environment variables or in an `.env` file in the root of your project.
@@ -9,7 +9,7 @@ A wrapper for De Giro to enable people to do portfolio analysis.
 from depyro.core import Depyro
 client = Depyro(auth_type="2fa")
 >>> Enter authenticator token...
-result = client.get_portfolio_info()
+client.get_portfolio_info()
 >>>
 [
   {
