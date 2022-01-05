@@ -4,7 +4,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="depyro2",
+    name="depyro",
     version="0.0.1",
     author="Daniel Steman",
     author_email="daniel-steman@live.nl",
