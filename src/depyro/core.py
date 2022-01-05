@@ -4,7 +4,7 @@ import os
 import logging
 from getpass import getpass
 from dotenv import load_dotenv
-import constants as c
+from src.depyro.constants import Constants as c
 
 logging.basicConfig(format=c.LOGGING_FORMAT, level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -129,5 +129,5 @@ class Depyro:
         return product
 
 
-# client = Depyro()
-# print(client.get_portfolio_info())
+client = Depyro()
+print(client.get_portfolio_info())
