@@ -11,12 +11,12 @@ logger = logging.getLogger(__name__)
 
 
 class Depyro:
-    def __init__(self):
+    def __init__(self, auth_type: str = "basic"):
         load_dotenv()
         self.client = Depyro.init_client()
         self.session_id = ""
         self.user = dict()
-        self.auth_type = "basic"
+        self.auth_type = auth_type
 
     def __repr__(self):
         return __class__.__name__
