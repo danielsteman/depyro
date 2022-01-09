@@ -4,7 +4,7 @@ import os
 import logging
 from getpass import getpass
 from dotenv import load_dotenv
-from src.depyro.constants import Constants as c
+from ..depyro.constants import Constants as c
 
 logging.basicConfig(format=c.LOGGING_FORMAT, level=logging.INFO)
 logger = logging.getLogger(__name__)
